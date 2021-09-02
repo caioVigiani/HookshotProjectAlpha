@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerCharacterController : MonoBehaviour {
-
+public class PlayerCharacterController : MonoBehaviour
+{
     private const float NORMAL_FOV = 60f;
     private const float HOOKSHOT_FOV = 100f;
 
@@ -22,13 +20,15 @@ public class PlayerCharacterController : MonoBehaviour {
     private Vector3 hookshotPosition;
     private float hookshotSize;
 
-    private enum State {
+    private enum State
+    {
         Normal,
         HookshotThrown,
         HookshotFlyingPlayer,
     }
 
-    private void Awake() {
+    private void Awake()
+    {
         characterController = GetComponent<CharacterController>();
         playerCamera = transform.Find("Camera").GetComponent<Camera>();
         cameraFov = playerCamera.GetComponent<CameraFov>();
@@ -38,7 +38,8 @@ public class PlayerCharacterController : MonoBehaviour {
         hookshotTransform.gameObject.SetActive(false);
     }
 
-    private void Update() {
+    private void Update()
+    {
         switch (state)
         {
             default:
@@ -59,7 +60,8 @@ public class PlayerCharacterController : MonoBehaviour {
         }
     }
 
-    private void HandleCharacterLook() {
+    private void HandleCharacterLook()
+    {
         float lookX = Input.GetAxisRaw("Mouse X");
         float lookY = Input.GetAxisRaw("Mouse Y");
 
@@ -76,7 +78,8 @@ public class PlayerCharacterController : MonoBehaviour {
         playerCamera.transform.localEulerAngles = new Vector3(cameraVerticalAngle, 0, 0);
     }
 
-    private void HandleCharacterMovement() {
+    private void HandleCharacterMovement()
+    {
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveZ = Input.GetAxisRaw("Vertical");
 
@@ -84,10 +87,12 @@ public class PlayerCharacterController : MonoBehaviour {
 
         Vector3 characterVelocity = transform.right * moveX * moveSpeed + transform.forward * moveZ * moveSpeed;
 
-        if (characterController.isGrounded) {
+        if (characterController.isGrounded)
+        {
             characterVelocityY = 0f;
             // Jump
-            if (TestInputJump()) {
+            if (TestInputJump())
+            {
                 float jumpSpeed = 30f;
                 characterVelocityY = jumpSpeed;
             }
@@ -108,22 +113,28 @@ public class PlayerCharacterController : MonoBehaviour {
         characterController.Move(characterVelocity * Time.deltaTime);
 
         // Dampen momentum
-        if (characterVelocityMomentum.magnitude > 0f) {
+        if (characterVelocityMomentum.magnitude > 0f)
+        {
             float momentumDrag = 3f;
             characterVelocityMomentum -= characterVelocityMomentum * momentumDrag * Time.deltaTime;
-            if (characterVelocityMomentum.magnitude < .0f) {
+            if (characterVelocityMomentum.magnitude < .0f)
+            {
                 characterVelocityMomentum = Vector3.zero;
             }
         }
     }
 
-    private void ResetGravityEffect() {
+    private void ResetGravityEffect()
+    {
         characterVelocityY = 0f;
     }
 
-    private void HandleHookshotStart() {
-        if (TestInputDownHookshot()) {
-            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit)) {
+    private void HandleHookshotStart()
+    {
+        if (TestInputDownHookshot())
+        {
+            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit))
+            {
                 // Hit something
                 debugHitPointTransform.position = raycastHit.point;
                 hookshotPosition = raycastHit.point;
@@ -135,21 +146,24 @@ public class PlayerCharacterController : MonoBehaviour {
         }
     }
 
-    private void HandleHookshotThrow() {
+    private void HandleHookshotThrow()
+    {
         hookshotTransform.LookAt(hookshotPosition);
 
         float hookshotThrowSpeed = 500f;
         hookshotSize += hookshotThrowSpeed * Time.deltaTime;
         hookshotTransform.localScale = new Vector3(1, 1, hookshotSize);
 
-        if (hookshotSize >= Vector3.Distance(transform.position, hookshotPosition)) {
+        if (hookshotSize >= Vector3.Distance(transform.position, hookshotPosition))
+        {
             state = State.HookshotFlyingPlayer;
             cameraFov.SetCameraFov(HOOKSHOT_FOV);
             speedLinesParticleSystem.Play();
         }
     }
 
-    private void HandleHookshotMovement() {
+    private void HandleHookshotMovement()
+    {
         hookshotTransform.LookAt(hookshotPosition);
 
         Vector3 hookshotDir = (hookshotPosition - transform.position).normalized;
@@ -163,17 +177,20 @@ public class PlayerCharacterController : MonoBehaviour {
         characterController.Move(hookshotDir * hookshotSpeed * hookshotSpeedMultiplier * Time.deltaTime);
 
         float reachedHookshotPositionDistance = 1f;
-        if (Vector3.Distance(transform.position, hookshotPosition) < reachedHookshotPositionDistance) {
+        if (Vector3.Distance(transform.position, hookshotPosition) < reachedHookshotPositionDistance)
+        {
             // Reached Hookshot Position
             StopHookshot();
         }
 
-        if (TestInputDownHookshot()) {
+        if (TestInputDownHookshot())
+        {
             // Cancel Hookshot
             StopHookshot();
         }
 
-        if (TestInputJump()) {
+        if (TestInputJump())
+        {
             // Cancelled with Jump
             float momentumExtraSpeed = 7f;
             characterVelocityMomentum = hookshotDir * hookshotSpeed * momentumExtraSpeed;
@@ -183,7 +200,8 @@ public class PlayerCharacterController : MonoBehaviour {
         }
     }
 
-    private void StopHookshot() {
+    private void StopHookshot()
+    {
         state = State.Normal;
         ResetGravityEffect();
         hookshotTransform.gameObject.SetActive(false);
@@ -191,11 +209,13 @@ public class PlayerCharacterController : MonoBehaviour {
         speedLinesParticleSystem.Stop();
     }
 
-    private bool TestInputDownHookshot() {
+    private bool TestInputDownHookshot()
+    {
         return Input.GetKeyDown(KeyCode.E);
     }
 
-    private bool TestInputJump() {
+    private bool TestInputJump()
+    {
         return Input.GetKeyDown(KeyCode.Space);
     }
 }
